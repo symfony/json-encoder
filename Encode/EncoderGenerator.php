@@ -31,7 +31,6 @@ use Symfony\Component\JsonEncoder\DataModel\VariableDataAccessor;
 use Symfony\Component\JsonEncoder\Exception\MaxDepthException;
 use Symfony\Component\JsonEncoder\Exception\RuntimeException;
 use Symfony\Component\JsonEncoder\Exception\UnsupportedException;
-use Symfony\Component\JsonEncoder\Mapping\PropertyMetadata;
 use Symfony\Component\JsonEncoder\Mapping\PropertyMetadataLoaderInterface;
 use Symfony\Component\TypeInfo\Type;
 use Symfony\Component\TypeInfo\Type\BackedEnumType;
@@ -57,13 +56,9 @@ final class EncoderGenerator
     private ?PrettyPrinter $phpPrinter = null;
     private ?Filesystem $fs = null;
 
-    /**
-     * @param bool $forceEncodeChunks enforces chunking the JSON string even if a simple `json_encode` is enough
-     */
     public function __construct(
         private PropertyMetadataLoaderInterface $propertyMetadataLoader,
         private string $encodersDir,
-        private bool $forceEncodeChunks,
     ) {
     }
 
@@ -79,7 +74,7 @@ final class EncoderGenerator
             return $path;
         }
 
-        $this->phpAstBuilder ??= new PhpAstBuilder($this->forceEncodeChunks);
+        $this->phpAstBuilder ??= new PhpAstBuilder();
         $this->phpOptimizer ??= new PhpOptimizer();
         $this->phpPrinter ??= new Standard(['phpVersion' => PhpVersion::fromComponents(8, 2)]);
         $this->fs ??= new Filesystem();
@@ -110,7 +105,7 @@ final class EncoderGenerator
 
     private function getPath(Type $type): string
     {
-        return \sprintf('%s%s%s.json%s.php', $this->encodersDir, \DIRECTORY_SEPARATOR, hash('xxh128', (string) $type), $this->forceEncodeChunks ? '.stream' : '');
+        return \sprintf('%s%s%s.json.php', $this->encodersDir, \DIRECTORY_SEPARATOR, hash('xxh128', (string) $type));
     }
 
     /**
@@ -142,7 +137,6 @@ final class EncoderGenerator
         if ($type instanceof ObjectType && !$type instanceof EnumType) {
             ++$context['depth'];
 
-            $transformed = false;
             $className = $type->getClassName();
             $propertiesMetadata = $this->propertyMetadataLoader->load($className, $options, ['original_type' => $type] + $context);
 
@@ -152,20 +146,12 @@ final class EncoderGenerator
                 throw new RuntimeException($e->getMessage(), $e->getCode(), $e);
             }
 
-            if (\count($classReflection->getProperties()) !== \count($propertiesMetadata)
-                || array_values(array_map(fn (PropertyMetadata $m): string => $m->getName(), $propertiesMetadata)) !== array_keys($propertiesMetadata)
-            ) {
-                $transformed = true;
-            }
-
             $propertiesNodes = [];
 
             foreach ($propertiesMetadata as $encodedName => $propertyMetadata) {
                 $propertyAccessor = new PropertyDataAccessor($accessor, $propertyMetadata->getName());
 
                 foreach ($propertyMetadata->getNormalizers() as $normalizer) {
-                    $transformed = true;
-
                     if (\is_string($normalizer)) {
                         $normalizerServiceAccessor = new FunctionDataAccessor('get', [new ScalarDataAccessor($normalizer)], new VariableDataAccessor('normalizers'));
                         $propertyAccessor = new FunctionDataAccessor('normalize', [$propertyAccessor, new VariableDataAccessor('options')], $normalizerServiceAccessor);
@@ -190,7 +176,7 @@ final class EncoderGenerator
                 $propertiesNodes[$encodedName] = $this->createDataModel($propertyMetadata->getType(), $propertyAccessor, $options, $context);
             }
 
-            return new ObjectNode($accessor, $type, $propertiesNodes, $transformed);
+            return new ObjectNode($accessor, $type, $propertiesNodes);
         }
 
         if ($type instanceof CollectionType) {

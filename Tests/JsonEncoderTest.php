@@ -202,8 +202,5 @@ class JsonEncoderTest extends TestCase
     {
         $encoder = JsonEncoder::create(encodersDir: $this->encodersDir, normalizers: $normalizers);
         $this->assertSame($expected, (string) $encoder->encode($data, $type, $options));
-
-        $encoder = JsonEncoder::create(encodersDir: $this->encodersDir, normalizers: $normalizers, forceEncodeChunks: true);
-        $this->assertSame($expected, (string) $encoder->encode($data, $type, $options));
     }
 }

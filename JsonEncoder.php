@@ -37,16 +37,12 @@ final class JsonEncoder implements EncoderInterface
 {
     private EncoderGenerator $encoderGenerator;
 
-    /**
-     * @param bool $forceEncodeChunks enforces chunking the JSON string even if a simple `json_encode` is enough
-     */
     public function __construct(
         private ContainerInterface $normalizers,
         PropertyMetadataLoaderInterface $propertyMetadataLoader,
         string $encodersDir,
-        bool $forceEncodeChunks = false,
     ) {
-        $this->encoderGenerator = new EncoderGenerator($propertyMetadataLoader, $encodersDir, $forceEncodeChunks);
+        $this->encoderGenerator = new EncoderGenerator($propertyMetadataLoader, $encodersDir);
     }
 
     public function encode(mixed $data, Type $type, array $options = []): \Traversable&\Stringable
@@ -58,9 +54,8 @@ final class JsonEncoder implements EncoderInterface
 
     /**
      * @param array<string, NormalizerInterface> $normalizers
-     * @param bool                               $forceEncodeChunks enforces chunking the JSON string even if a simple `json_encode` is enough
      */
-    public static function create(array $normalizers = [], ?string $encodersDir = null, bool $forceEncodeChunks = false): self
+    public static function create(array $normalizers = [], ?string $encodersDir = null): self
     {
         $encodersDir ??= sys_get_temp_dir().'/json_encoder/encoder';
         $normalizers += [
@@ -97,6 +92,6 @@ final class JsonEncoder implements EncoderInterface
             $typeContextFactory,
         );
 
-        return new self($normalizersContainer, $propertyMetadataLoader, $encodersDir, $forceEncodeChunks);
+        return new self($normalizersContainer, $propertyMetadataLoader, $encodersDir);
     }
 }

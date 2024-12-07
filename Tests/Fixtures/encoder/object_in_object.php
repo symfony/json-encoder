@@ -7,7 +7,9 @@ return static function (mixed $data, \Psr\Container\ContainerInterface $normaliz
     yield \json_encode($data->otherDummyOne->id);
     yield ',"name":';
     yield \json_encode($data->otherDummyOne->name);
-    yield '},"otherDummyTwo":';
-    yield \json_encode($data->otherDummyTwo);
-    yield '}';
+    yield '},"otherDummyTwo":{"id":';
+    yield \json_encode($data->otherDummyTwo->id);
+    yield ',"name":';
+    yield \json_encode($data->otherDummyTwo->name);
+    yield '}}';
 };

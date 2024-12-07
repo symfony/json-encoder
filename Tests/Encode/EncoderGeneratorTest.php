@@ -66,17 +66,10 @@ class EncoderGeneratorTest extends TestCase
             new TypeContextFactory(new StringTypeResolver()),
         );
 
-        $generator = new EncoderGenerator($propertyMetadataLoader, $this->encodersDir, forceEncodeChunks: false);
+        $generator = new EncoderGenerator($propertyMetadataLoader, $this->encodersDir);
 
         $this->assertStringEqualsFile(
             \sprintf('%s/Fixtures/encoder/%s.php', \dirname(__DIR__), $fixture),
-            file_get_contents($generator->generate($type)),
-        );
-
-        $generator = new EncoderGenerator($propertyMetadataLoader, $this->encodersDir, forceEncodeChunks: true);
-
-        $this->assertStringEqualsFile(
-            \sprintf('%s/Fixtures/encoder/%s.stream.php', \dirname(__DIR__), $fixture),
             file_get_contents($generator->generate($type)),
         );
     }
@@ -117,7 +110,7 @@ class EncoderGeneratorTest extends TestCase
 
     public function testDoNotSupportIntersectionType()
     {
-        $generator = new EncoderGenerator(new PropertyMetadataLoader(TypeResolver::create()), $this->encodersDir, false);
+        $generator = new EncoderGenerator(new PropertyMetadataLoader(TypeResolver::create()), $this->encodersDir);
 
         $this->expectException(UnsupportedException::class);
         $this->expectExceptionMessage('"Stringable&Traversable" type is not supported.');
@@ -127,7 +120,7 @@ class EncoderGeneratorTest extends TestCase
 
     public function testDoNotSupportEnumType()
     {
-        $generator = new EncoderGenerator(new PropertyMetadataLoader(TypeResolver::create()), $this->encodersDir, false);
+        $generator = new EncoderGenerator(new PropertyMetadataLoader(TypeResolver::create()), $this->encodersDir);
 
         $this->expectException(UnsupportedException::class);
         $this->expectExceptionMessage(\sprintf('"%s" type is not supported.', DummyEnum::class));

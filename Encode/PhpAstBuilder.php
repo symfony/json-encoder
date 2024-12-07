@@ -59,9 +59,8 @@ final class PhpAstBuilder
 {
     private BuilderFactory $builder;
 
-    public function __construct(
-        private bool $forceEncodeChunks = false,
-    ) {
+    public function __construct()
+    {
         $this->builder = new BuilderFactory();
     }
 
@@ -103,7 +102,7 @@ final class PhpAstBuilder
             ];
         }
 
-        if (!$this->forceEncodeChunks && $this->nodeOnlyNeedsEncode($dataModelNode)) {
+        if ($this->nodeOnlyNeedsEncode($dataModelNode)) {
             return [
                 new Expression(new Yield_($this->encodeValue($accessor))),
             ];
@@ -276,21 +275,12 @@ final class PhpAstBuilder
             return $this->nodeOnlyNeedsEncode($node->getItemNode(), $nestingLevel + 1);
         }
 
-        if ($node instanceof ObjectNode && !$node->isTransformed()) {
-            foreach ($node->getProperties() as $property) {
-                if (!$this->nodeOnlyNeedsEncode($property, $nestingLevel + 1)) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         if ($node instanceof ScalarNode) {
             $type = $node->getType();
 
             // "null" will be written directly using the "null" string
             // "bool" will be written directly using the "true" or "false" string
+            // but it must not prevent any json_encode if nested
             if ($type->isIdentifiedBy(TypeIdentifier::NULL) || $type->isIdentifiedBy(TypeIdentifier::BOOL)) {
                 return $nestingLevel > 0;
             }

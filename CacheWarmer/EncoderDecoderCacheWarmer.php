@@ -41,10 +41,9 @@ final class EncoderDecoderCacheWarmer implements CacheWarmerInterface
         PropertyMetadataLoaderInterface $decodePropertyMetadataLoader,
         string $encodersDir,
         string $decodersDir,
-        bool $forceEncodeChunks = false,
         private LoggerInterface $logger = new NullLogger(),
     ) {
-        $this->encoderGenerator = new EncoderGenerator($encodePropertyMetadataLoader, $encodersDir, $forceEncodeChunks);
+        $this->encoderGenerator = new EncoderGenerator($encodePropertyMetadataLoader, $encodersDir);
         $this->decoderGenerator = new DecoderGenerator($decodePropertyMetadataLoader, $decodersDir);
     }
 

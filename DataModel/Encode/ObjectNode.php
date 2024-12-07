@@ -30,7 +30,6 @@ final class ObjectNode implements DataModelNodeInterface
         private DataAccessorInterface $accessor,
         private ObjectType $type,
         private array $properties,
-        private bool $transformed,
     ) {
     }
 
@@ -50,10 +49,5 @@ final class ObjectNode implements DataModelNodeInterface
     public function getProperties(): array
     {
         return $this->properties;
-    }
-
-    public function isTransformed(): bool
-    {
-        return $this->transformed;
     }
 }

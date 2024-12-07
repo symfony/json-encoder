@@ -48,7 +48,7 @@ class CompositeNodeTest extends TestCase
     {
         $composite = new CompositeNode(new VariableDataAccessor('data'), [
             $scalar = new ScalarNode(new VariableDataAccessor('data'), Type::int()),
-            $object = new ObjectNode(new VariableDataAccessor('data'), Type::object(self::class), [], false),
+            $object = new ObjectNode(new VariableDataAccessor('data'), Type::object(self::class), []),
             $collection = new CollectionNode(new VariableDataAccessor('data'), Type::list(), new ScalarNode(new VariableDataAccessor('data'), Type::int())),
         ]);
 
