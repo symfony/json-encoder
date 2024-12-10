@@ -23,12 +23,12 @@ class DateTimeNormalizerTest extends TestCase
 
         $this->assertEquals(
             '2023-07-26T00:00:00+00:00',
-            $normalizer->normalize(new \DateTimeImmutable('2023-07-26'), []),
+            $normalizer->normalize(new \DateTimeImmutable('2023-07-26', new \DateTimeZone('UTC')), []),
         );
 
         $this->assertEquals(
             '26/07/2023 00:00:00',
-            $normalizer->normalize((new \DateTimeImmutable('2023-07-26'))->setTime(0, 0), [DateTimeNormalizer::FORMAT_KEY => 'd/m/Y H:i:s']),
+            $normalizer->normalize((new \DateTimeImmutable('2023-07-26', new \DateTimeZone('UTC')))->setTime(0, 0), [DateTimeNormalizer::FORMAT_KEY => 'd/m/Y H:i:s']),
         );
     }
 
