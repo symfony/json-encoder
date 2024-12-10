@@ -18,7 +18,7 @@ use Symfony\Component\VarExporter\ProxyHelper;
 /**
  * Instantiates a new $className lazy ghost {@see \Symfony\Component\VarExporter\LazyGhostTrait}.
  *
- * The $className class must not final.
+ * The $className class must not be final.
  *
  * A property must be a callable that returns the actual value when being called.
  *
@@ -82,12 +82,10 @@ final class LazyInstantiator
                 $this->fs->mkdir($this->lazyGhostsDir);
             }
 
-            $lazyClassName = \sprintf('%sGhost', preg_replace('/\\\\/', '', $className));
-
             file_put_contents($path, \sprintf('<?php class %s%s', $lazyClassName, ProxyHelper::generateLazyGhost($classReflection)));
         }
 
-        require_once \sprintf('%s%s%s.php', $this->lazyGhostsDir, \DIRECTORY_SEPARATOR, hash('xxh128', $className));
+        require_once $path;
 
         self::$lazyClassesLoaded[$className] = true;
 
