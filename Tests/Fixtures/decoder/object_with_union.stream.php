@@ -3,16 +3,14 @@
 return static function (mixed $stream, \Psr\Container\ContainerInterface $denormalizers, \Symfony\Component\JsonEncoder\Decode\LazyInstantiator $instantiator, array $options): mixed {
     $providers['Symfony\Component\JsonEncoder\Tests\Fixtures\Model\DummyWithUnionProperties'] = static function ($stream, $offset, $length) use ($options, $denormalizers, $instantiator, &$providers) {
         $data = \Symfony\Component\JsonEncoder\Decode\Splitter::splitDict($stream, $offset, $length);
-        $properties = [];
-        foreach ($data as $k => $v) {
-            match ($k) {
-                'value' => $properties['value'] = static function () use ($stream, $v, $options, $denormalizers, $instantiator, &$providers) {
-                    return $providers['Symfony\Component\JsonEncoder\Tests\Fixtures\Enum\DummyBackedEnum|null|string']($stream, $v[0], $v[1]);
-                },
-                default => null,
-            };
-        }
-        return $instantiator->instantiate(\Symfony\Component\JsonEncoder\Tests\Fixtures\Model\DummyWithUnionProperties::class, $properties);
+        return $instantiator->instantiate(\Symfony\Component\JsonEncoder\Tests\Fixtures\Model\DummyWithUnionProperties::class, static function ($object) use ($stream, $data, $options, $denormalizers, $instantiator, &$providers) {
+            foreach ($data as $k => $v) {
+                match ($k) {
+                    'value' => $object->value = $providers['Symfony\Component\JsonEncoder\Tests\Fixtures\Enum\DummyBackedEnum|null|string']($stream, $v[0], $v[1]),
+                    default => null,
+                };
+            }
+        });
     };
     $providers['Symfony\Component\JsonEncoder\Tests\Fixtures\Enum\DummyBackedEnum'] = static function ($stream, $offset, $length) {
         return \Symfony\Component\JsonEncoder\Tests\Fixtures\Enum\DummyBackedEnum::from(\Symfony\Component\JsonEncoder\Decode\NativeDecoder::decodeStream($stream, $offset, $length));

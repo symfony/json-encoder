@@ -12,15 +12,15 @@
 namespace Symfony\Component\JsonEncoder\Decode;
 
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\JsonEncoder\Exception\InvalidArgumentException;
 use Symfony\Component\JsonEncoder\Exception\RuntimeException;
 use Symfony\Component\VarExporter\ProxyHelper;
 
 /**
  * Instantiates a new $className lazy ghost {@see \Symfony\Component\VarExporter\LazyGhostTrait}.
  *
- * The $className class must not be final.
- *
- * A property must be a callable that returns the actual value when being called.
+ * Prior to PHP 8.4, the "$className" argument class must not be final.
+ * The $initializer must be a callable that sets the actual object values when being called.
  *
  * @author Mathias Arlaud <mathias.arlaud@gmail.com>
  *
@@ -28,7 +28,7 @@ use Symfony\Component\VarExporter\ProxyHelper;
  */
 final class LazyInstantiator
 {
-    private Filesystem $fs;
+    private ?Filesystem $fs = null;
 
     /**
      * @var array{reflection: array<class-string, \ReflectionClass<object>>, lazy_class_name: array<class-string, class-string>}
@@ -44,20 +44,22 @@ final class LazyInstantiator
     private static array $lazyClassesLoaded = [];
 
     public function __construct(
-        private string $lazyGhostsDir,
+        private ?string $lazyGhostsDir = null,
     ) {
-        $this->fs = new Filesystem();
+        if (null === $this->lazyGhostsDir && \PHP_VERSION_ID < 80400) {
+            throw new InvalidArgumentException('The "$lazyGhostsDir" argument cannot be null when using PHP < 8.4.');
+        }
     }
 
     /**
      * @template T of object
      *
-     * @param class-string<T>                  $className
-     * @param array<string, callable(): mixed> $propertiesCallables
+     * @param class-string<T>   $className
+     * @param callable(T): void $initializer
      *
      * @return T
      */
-    public function instantiate(string $className, array $propertiesCallables): object
+    public function instantiate(string $className, callable $initializer): object
     {
         try {
             $classReflection = self::$cache['reflection'][$className] ??= new \ReflectionClass($className);
@@ -65,13 +67,14 @@ final class LazyInstantiator
             throw new RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
 
-        $lazyClassName = self::$cache['lazy_class_name'][$className] ??= \sprintf('%sGhost', preg_replace('/\\\\/', '', $className));
+        // use native lazy ghosts if available
+        if (\PHP_VERSION_ID >= 80400) {
+            return $classReflection->newLazyGhost($initializer);
+        }
 
-        $initializer = function (object $object) use ($propertiesCallables) {
-            foreach ($propertiesCallables as $name => $propertyCallable) {
-                $object->{$name} = $propertyCallable();
-            }
-        };
+        $this->fs ??= new Filesystem();
+
+        $lazyClassName = self::$cache['lazy_class_name'][$className] ??= \sprintf('%sGhost', preg_replace('/\\\\/', '', $className));
 
         if (isset(self::$lazyClassesLoaded[$className]) && class_exists($lazyClassName)) {
             return $lazyClassName::createLazyGhost($initializer);

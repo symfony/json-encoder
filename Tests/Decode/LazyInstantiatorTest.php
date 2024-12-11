@@ -13,6 +13,7 @@ namespace Symfony\Component\JsonEncoder\Tests\Decode;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\JsonEncoder\Decode\LazyInstantiator;
+use Symfony\Component\JsonEncoder\Exception\InvalidArgumentException;
 use Symfony\Component\JsonEncoder\Tests\Fixtures\Model\ClassicDummy;
 use Symfony\Component\JsonEncoder\Tests\Fixtures\Model\DummyWithNormalizerAttributes;
 
@@ -32,17 +33,46 @@ class LazyInstantiatorTest extends TestCase
         }
     }
 
-    public function testCreateLazyGhost()
+    /**
+     * @requires PHP < 8.4
+     */
+    public function testCreateLazyGhostUsingVarExporter()
     {
-        $ghost = (new LazyInstantiator($this->lazyGhostsDir))->instantiate(ClassicDummy::class, []);
+        $ghost = (new LazyInstantiator($this->lazyGhostsDir))->instantiate(ClassicDummy::class, function (ClassicDummy $object): void {
+            $object->id = 123;
+        });
 
-        $this->assertArrayHasKey(\sprintf("\0%sGhost\0lazyObjectState", preg_replace('/\\\\/', '', ClassicDummy::class)), (array) $ghost);
+        $this->assertSame(123, $ghost->id);
     }
 
+    /**
+     * @requires PHP < 8.4
+     */
     public function testCreateCacheFile()
     {
-        (new LazyInstantiator($this->lazyGhostsDir))->instantiate(DummyWithNormalizerAttributes::class, []);
+        (new LazyInstantiator($this->lazyGhostsDir))->instantiate(DummyWithNormalizerAttributes::class, function (ClassicDummy $object): void {});
 
         $this->assertCount(1, glob($this->lazyGhostsDir.'/*'));
+    }
+
+    /**
+     * @requires PHP < 8.4
+     */
+    public function testThrowIfLazyGhostDirNotDefined()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        new LazyInstantiator();
+    }
+
+    /**
+     * @requires PHP 8.4
+     */
+    public function testCreateLazyGhostUsingPhp()
+    {
+        $ghost = (new LazyInstantiator())->instantiate(ClassicDummy::class, function (ClassicDummy $object): void {
+            $object->id = 123;
+        });
+
+        $this->assertSame(123, $ghost->id);
     }
 }
