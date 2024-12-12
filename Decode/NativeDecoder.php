@@ -40,10 +40,6 @@ final class NativeDecoder
             $json = $stream->read($length);
         }
 
-        try {
-            return json_decode($json, associative: true, flags: \JSON_THROW_ON_ERROR);
-        } catch (\JsonException $e) {
-            throw new UnexpectedValueException('JSON is not valid: '.$e->getMessage());
-        }
+        return self::decodeString($json);
     }
 }
