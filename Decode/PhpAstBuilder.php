@@ -53,8 +53,8 @@ use Symfony\Component\JsonEncoder\Exception\UnexpectedValueException;
 use Symfony\Component\TypeInfo\Type\BackedEnumType;
 use Symfony\Component\TypeInfo\Type\CollectionType;
 use Symfony\Component\TypeInfo\Type\ObjectType;
-use Symfony\Component\TypeInfo\TypeIdentifier;
 use Symfony\Component\TypeInfo\Type\WrappingTypeInterface;
+use Symfony\Component\TypeInfo\TypeIdentifier;
 
 /**
  * Builds a PHP syntax tree that decodes JSON.
