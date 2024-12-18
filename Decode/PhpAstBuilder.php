@@ -445,21 +445,8 @@ final class PhpAstBuilder
                     );
 
                 $streamPropertiesValuesStmts[] = new MatchArm([$this->builder->val($encodedName)], new Assign(
-                    new ArrayDimFetch($this->builder->var('properties'), $this->builder->val($property['name'])),
-                    new Closure([
-                        'static' => true,
-                        'uses' => [
-                            new ClosureUse($this->builder->var('stream')),
-                            new ClosureUse($this->builder->var('v')),
-                            new ClosureUse($this->builder->var('options')),
-                            new ClosureUse($this->builder->var('denormalizers')),
-                            new ClosureUse($this->builder->var('instantiator')),
-                            new ClosureUse($this->builder->var('providers'), byRef: true),
-                        ],
-                        'stmts' => [
-                            new Return_($property['accessor'](new PhpExprDataAccessor($propertyValueStmt))->toPhpExpr()),
-                        ],
-                    ]),
+                    $this->builder->propertyFetch($this->builder->var('object'), $property['name']),
+                    $property['accessor'](new PhpExprDataAccessor($propertyValueStmt))->toPhpExpr(),
                 ));
             } else {
                 $propertyValueStmt = $this->nodeOnlyNeedsDecode($property['value'], $decodeFromStream)
@@ -494,17 +481,29 @@ final class PhpAstBuilder
 
         if ($decodeFromStream) {
             $instantiateStmts = [
-                new Expression(new Assign($this->builder->var('properties'), new Array_([], ['kind' => Array_::KIND_SHORT]))),
-                new Foreach_($this->builder->var('data'), $this->builder->var('v'), [
-                    'keyVar' => $this->builder->var('k'),
-                    'stmts' => [new Expression(new Match_(
-                        $this->builder->var('k'),
-                        [...$streamPropertiesValuesStmts, new MatchArm(null, $this->builder->val(null))],
-                    ))],
-                ]),
                 new Return_($this->builder->methodCall($this->builder->var('instantiator'), 'instantiate', [
                     new ClassConstFetch(new FullyQualified($node->getType()->getClassName()), 'class'),
-                    $this->builder->var('properties'),
+                    new Closure([
+                        'static' => true,
+                        'params' => [new Param($this->builder->var('object'))],
+                        'uses' => [
+                            new ClosureUse($this->builder->var('stream')),
+                            new ClosureUse($this->builder->var('data')),
+                            new ClosureUse($this->builder->var('options')),
+                            new ClosureUse($this->builder->var('denormalizers')),
+                            new ClosureUse($this->builder->var('instantiator')),
+                            new ClosureUse($this->builder->var('providers'), byRef: true),
+                        ],
+                        'stmts' => [
+                            new Foreach_($this->builder->var('data'), $this->builder->var('v'), [
+                                'keyVar' => $this->builder->var('k'),
+                                'stmts' => [new Expression(new Match_(
+                                    $this->builder->var('k'),
+                                    [...$streamPropertiesValuesStmts, new MatchArm(null, $this->builder->val(null))],
+                                ))],
+                            ]),
+                        ],
+                    ]),
                 ])),
             ];
         } else {
