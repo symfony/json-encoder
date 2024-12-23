@@ -26,6 +26,7 @@
     },
     "require-dev": {
         "phpstan/phpdoc-parser": "^1.0",
+        "symfony/dependency-injection": "^7.2",
         "symfony/http-kernel": "^7.2"
     },
     "autoload": {
