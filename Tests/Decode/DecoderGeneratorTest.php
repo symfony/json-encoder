@@ -95,12 +95,13 @@ class DecoderGeneratorTest extends TestCase
         yield ['list', Type::list()];
         yield ['object_list', Type::list(Type::object(ClassicDummy::class))];
         yield ['nullable_object_list', Type::nullable(Type::list(Type::object(ClassicDummy::class)))];
-        yield ['iterable_list', Type::iterable(key: Type::int(), asList: true)];
 
         yield ['dict', Type::dict()];
         yield ['object_dict', Type::dict(Type::object(ClassicDummy::class))];
         yield ['nullable_object_dict', Type::nullable(Type::dict(Type::object(ClassicDummy::class)))];
-        yield ['iterable_dict', Type::iterable(key: Type::string())];
+
+        yield ['iterable', Type::iterable()];
+        yield ['object_iterable', Type::iterable(Type::object(ClassicDummy::class))];
 
         yield ['object', Type::object(ClassicDummy::class)];
         yield ['nullable_object', Type::nullable(Type::object(ClassicDummy::class))];

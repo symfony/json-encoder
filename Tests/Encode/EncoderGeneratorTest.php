@@ -21,6 +21,7 @@ use Symfony\Component\JsonEncoder\Mapping\PropertyMetadataLoader;
 use Symfony\Component\JsonEncoder\Mapping\PropertyMetadataLoaderInterface;
 use Symfony\Component\JsonEncoder\Tests\Fixtures\Enum\DummyBackedEnum;
 use Symfony\Component\JsonEncoder\Tests\Fixtures\Enum\DummyEnum;
+use Symfony\Component\JsonEncoder\Tests\Fixtures\Model\ClassicDummy;
 use Symfony\Component\JsonEncoder\Tests\Fixtures\Model\DummyWithNameAttributes;
 use Symfony\Component\JsonEncoder\Tests\Fixtures\Model\DummyWithNormalizerAttributes;
 use Symfony\Component\JsonEncoder\Tests\Fixtures\Model\DummyWithOtherDummies;
@@ -92,12 +93,12 @@ class EncoderGeneratorTest extends TestCase
         yield ['object_list', Type::list(Type::object(DummyWithNameAttributes::class))];
         yield ['nullable_object_list', Type::nullable(Type::list(Type::object(DummyWithNameAttributes::class)))];
 
-        yield ['iterable_list', Type::iterable(key: Type::int(), asList: true)];
-
         yield ['dict', Type::dict()];
         yield ['object_dict', Type::dict(Type::object(DummyWithNameAttributes::class))];
         yield ['nullable_object_dict', Type::nullable(Type::dict(Type::object(DummyWithNameAttributes::class)))];
-        yield ['iterable_dict', Type::iterable(key: Type::string())];
+
+        yield ['iterable', Type::iterable()];
+        yield ['object_iterable', Type::iterable(Type::object(ClassicDummy::class))];
 
         yield ['object', Type::object(DummyWithNameAttributes::class)];
         yield ['nullable_object', Type::nullable(Type::object(DummyWithNameAttributes::class))];

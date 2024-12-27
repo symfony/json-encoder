@@ -81,6 +81,33 @@ class JsonEncoderTest extends TestCase
         $this->assertEncoded('{"value":null}', $dummy, Type::object(DummyWithUnionProperties::class));
     }
 
+    public function testEncodeCollection()
+    {
+        $this->assertEncoded(
+            '{"0":{"id":1,"name":"dummy"},"1":{"id":1,"name":"dummy"}}',
+            [new ClassicDummy(), new ClassicDummy()],
+            Type::array(Type::object(ClassicDummy::class)),
+        );
+
+        $this->assertEncoded(
+            '[{"id":1,"name":"dummy"},{"id":1,"name":"dummy"}]',
+            [new ClassicDummy(), new ClassicDummy()],
+            Type::list(Type::object(ClassicDummy::class)),
+        );
+
+        $this->assertEncoded(
+            '{"0":{"id":1,"name":"dummy"},"1":{"id":1,"name":"dummy"}}',
+            new \ArrayObject([new ClassicDummy(), new ClassicDummy()]),
+            Type::iterable(Type::object(ClassicDummy::class)),
+        );
+
+        $this->assertEncoded(
+            '{"0":{"id":1,"name":"dummy"},"1":{"id":1,"name":"dummy"}}',
+            new \ArrayObject([new ClassicDummy(), new ClassicDummy()]),
+            Type::iterable(Type::object(ClassicDummy::class), Type::int()),
+        );
+    }
+
     public function testEncodeObject()
     {
         $dummy = new ClassicDummy();
