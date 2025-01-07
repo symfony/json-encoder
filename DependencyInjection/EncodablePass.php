@@ -30,7 +30,11 @@ class EncodablePass implements CompilerPassInterface
         $encodableClassNames = [];
 
         // retrieve concrete services tagged with "json_encoder.encodable" tag
-        foreach ($container->findTaggedServiceIds('json_encoder.encodable') as $id => $tags) {
+        foreach ($container->getDefinitions() as $id => $definition) {
+            if (!$definition->hasTag('json_encoder.encodable')) {
+                continue;
+            }
+
             if (($className = $container->getDefinition($id)->getClass()) && !$container->getDefinition($id)->isAbstract()) {
                 $encodableClassNames[] = $className;
             }
