@@ -19,4 +19,9 @@ namespace Symfony\Component\JsonEncoder\Attribute;
 #[\Attribute(\Attribute::TARGET_CLASS)]
 final class JsonEncodable
 {
+    public function __construct(
+        public bool $asObject = true,
+        public bool $asList = true,
+    ) {
+    }
 }

@@ -25,8 +25,8 @@ class EncodablePassTest extends TestCase
         $container->register('.json_encoder.cache_warmer.encoder_decoder')->setArguments([null]);
         $container->register('.json_encoder.cache_warmer.lazy_ghost')->setArguments([null]);
 
-        $container->register('encodable')->setClass('Foo')->addTag('json_encoder.encodable');
-        $container->register('abstractEncodable')->setClass('Bar')->addTag('json_encoder.encodable')->setAbstract(true);
+        $container->register('encodable')->setClass('Foo')->addTag('json_encoder.encodable', ['object' => true, 'list' => true]);
+        $container->register('abstractEncodable')->setClass('Bar')->addTag('json_encoder.encodable', ['object' => true, 'list' => true])->setAbstract(true);
         $container->register('notEncodable')->setClass('Baz');
 
         $pass = new EncodablePass();
@@ -35,9 +35,7 @@ class EncodablePassTest extends TestCase
         $encoderDecoderCacheWarmer = $container->getDefinition('.json_encoder.cache_warmer.encoder_decoder');
         $lazyGhostCacheWarmer = $container->getDefinition('.json_encoder.cache_warmer.lazy_ghost');
 
-        $expectedEncodableClassNames = ['Foo'];
-
-        $this->assertSame($expectedEncodableClassNames, $encoderDecoderCacheWarmer->getArgument(0));
-        $this->assertSame($expectedEncodableClassNames, $lazyGhostCacheWarmer->getArgument(0));
+        $this->assertSame(['Foo' => ['object' => true, 'list' => true]], $encoderDecoderCacheWarmer->getArgument(0));
+        $this->assertSame(['Foo'], $lazyGhostCacheWarmer->getArgument(0));
     }
 }

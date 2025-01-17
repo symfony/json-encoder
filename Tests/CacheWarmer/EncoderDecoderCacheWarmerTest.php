@@ -15,6 +15,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\JsonEncoder\CacheWarmer\EncoderDecoderCacheWarmer;
 use Symfony\Component\JsonEncoder\Mapping\PropertyMetadataLoader;
 use Symfony\Component\JsonEncoder\Tests\Fixtures\Model\ClassicDummy;
+use Symfony\Component\JsonEncoder\Tests\Fixtures\Model\DummyWithNameAttributes;
 use Symfony\Component\TypeInfo\TypeResolver\TypeResolver;
 
 class EncoderDecoderCacheWarmerTest extends TestCase
@@ -42,24 +43,36 @@ class EncoderDecoderCacheWarmerTest extends TestCase
 
     public function testWarmUp()
     {
-        $this->cacheWarmer()->warmUp('useless');
+        $this->cacheWarmer([
+            ClassicDummy::class => ['object' => true, 'list' => true],
+            DummyWithNameAttributes::class => ['object' => true, 'list' => false],
+        ])->warmUp('useless');
 
         $this->assertSame([
+            \sprintf('%s/5acb3571777e02a2712fb9a9126a338f.json.php', $this->encodersDir),
             \sprintf('%s/d147026bb5d25e5012afcdc1543cf097.json.php', $this->encodersDir),
+            \sprintf('%s/de878efdd0bf652bdd72d1dc95f6d80d.json.php', $this->encodersDir),
         ], glob($this->encodersDir.'/*'));
 
         $this->assertSame([
+            \sprintf('%s/5acb3571777e02a2712fb9a9126a338f.json.php', $this->decodersDir),
+            \sprintf('%s/5acb3571777e02a2712fb9a9126a338f.json.stream.php', $this->decodersDir),
             \sprintf('%s/d147026bb5d25e5012afcdc1543cf097.json.php', $this->decodersDir),
             \sprintf('%s/d147026bb5d25e5012afcdc1543cf097.json.stream.php', $this->decodersDir),
+            \sprintf('%s/de878efdd0bf652bdd72d1dc95f6d80d.json.php', $this->decodersDir),
+            \sprintf('%s/de878efdd0bf652bdd72d1dc95f6d80d.json.stream.php', $this->decodersDir),
         ], glob($this->decodersDir.'/*'));
     }
 
-    private function cacheWarmer(): EncoderDecoderCacheWarmer
+    /**
+     * @param array<class-string, array{object: bool, list: bool}> $encodableClasses
+     */
+    private function cacheWarmer(array $encodableClasses = []): EncoderDecoderCacheWarmer
     {
         $typeResolver = TypeResolver::create();
 
         return new EncoderDecoderCacheWarmer(
-            [ClassicDummy::class],
+            $encodableClasses,
             new PropertyMetadataLoader($typeResolver),
             new PropertyMetadataLoader($typeResolver),
             $this->encodersDir,

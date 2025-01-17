@@ -33,10 +33,10 @@ final class EncoderDecoderCacheWarmer implements CacheWarmerInterface
     private DecoderGenerator $decoderGenerator;
 
     /**
-     * @param iterable<class-string> $encodableClassNames
+     * @param iterable<class-string, array{object: bool, list: bool}> $encodable
      */
     public function __construct(
-        private iterable $encodableClassNames,
+        private iterable $encodable,
         PropertyMetadataLoaderInterface $encodePropertyMetadataLoader,
         PropertyMetadataLoaderInterface $decodePropertyMetadataLoader,
         string $encodersDir,
@@ -49,11 +49,20 @@ final class EncoderDecoderCacheWarmer implements CacheWarmerInterface
 
     public function warmUp(string $cacheDir, ?string $buildDir = null): array
     {
-        foreach ($this->encodableClassNames as $className) {
-            $type = Type::object($className);
+        foreach ($this->encodable as $className => $encodable) {
+            if ($encodable['object']) {
+                $type = Type::object($className);
 
-            $this->warmUpEncoder($type);
-            $this->warmUpDecoders($type);
+                $this->warmUpEncoder($type);
+                $this->warmUpDecoders($type);
+            }
+
+            if ($encodable['list']) {
+                $type = Type::list(Type::object($className));
+
+                $this->warmUpEncoder($type);
+                $this->warmUpDecoders($type);
+            }
         }
 
         return [];
