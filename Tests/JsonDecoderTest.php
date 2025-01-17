@@ -64,16 +64,29 @@ class JsonDecoderTest extends TestCase
     {
         $decoder = JsonDecoder::create(decodersDir: $this->decodersDir, lazyGhostsDir: $this->lazyGhostsDir);
 
-        $this->assertDecoded($decoder, [['foo' => 1, 'bar' => 2], ['foo' => 3]], '[{"foo": 1, "bar": 2}, {"foo": 3}]', Type::list(Type::dict(Type::int())));
+        $this->assertDecoded(
+            $decoder,
+            [true, false],
+            '{"0": true, "1": false}',
+            Type::array(Type::bool()),
+        );
+
+        $this->assertDecoded(
+            $decoder,
+            [true, false],
+            '[true, false]',
+            Type::list(Type::bool()),
+        );
+
         $this->assertDecoded($decoder, function (mixed $decoded) {
             $this->assertIsIterable($decoded);
-            $array = [];
-            foreach ($decoded as $item) {
-                $array[] = iterator_to_array($item);
-            }
+            $this->assertSame([true, false], iterator_to_array($decoded));
+        }, '{"0": true, "1": false}', Type::iterable(Type::bool()));
 
-            $this->assertSame([['foo' => 1, 'bar' => 2], ['foo' => 3]], $array);
-        }, '[{"foo": 1, "bar": 2}, {"foo": 3}]', Type::iterable(Type::iterable(Type::int()), Type::int(), asList: true));
+        $this->assertDecoded($decoder, function (mixed $decoded) {
+            $this->assertIsIterable($decoded);
+            $this->assertSame([true, false], iterator_to_array($decoded));
+        }, '{"0": true, "1": false}', Type::iterable(Type::bool(), Type::int()));
     }
 
     public function testDecodeObject()
