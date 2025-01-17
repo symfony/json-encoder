@@ -142,7 +142,7 @@ class EncoderGeneratorTest extends TestCase
             ])
             ->willReturn([]);
 
-        $generator = new EncoderGenerator($propertyMetadataLoader, $this->encodersDir, false);
+        $generator = new EncoderGenerator($propertyMetadataLoader, $this->encodersDir);
         $generator->generate($type);
     }
 }

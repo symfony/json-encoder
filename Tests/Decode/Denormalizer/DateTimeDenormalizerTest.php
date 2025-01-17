@@ -23,7 +23,7 @@ class DateTimeDenormalizerTest extends TestCase
 
         $this->assertEquals(
             new \DateTimeImmutable('2023-07-26'),
-            $denormalizer->denormalize('2023-07-26', []),
+            $denormalizer->denormalize('2023-07-26'),
         );
 
         $this->assertEquals(
@@ -38,7 +38,7 @@ class DateTimeDenormalizerTest extends TestCase
 
         $this->assertEquals(
             new \DateTime('2023-07-26'),
-            $denormalizer->denormalize('2023-07-26', []),
+            $denormalizer->denormalize('2023-07-26'),
         );
 
         $this->assertEquals(
@@ -52,7 +52,7 @@ class DateTimeDenormalizerTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The normalized data is either not an string, or an empty string, or null; you should pass a string that can be parsed with the passed format or a valid DateTime string.');
 
-        (new DateTimeDenormalizer(immutable: true))->denormalize(true, []);
+        (new DateTimeDenormalizer(immutable: true))->denormalize(true);
     }
 
     public function testThrowWhenInvalidDateTimeString()
@@ -60,7 +60,7 @@ class DateTimeDenormalizerTest extends TestCase
         $denormalizer = new DateTimeDenormalizer(immutable: true);
 
         try {
-            $denormalizer->denormalize('0', []);
+            $denormalizer->denormalize('0');
             $this->fail(\sprintf('A "%s" exception must have been thrown.', InvalidArgumentException::class));
         } catch (InvalidArgumentException $e) {
             $this->assertEquals("Parsing datetime string \"0\" resulted in 1 errors: \nat position 0: Unexpected character", $e->getMessage());
